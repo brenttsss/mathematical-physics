@@ -43,29 +43,12 @@ def compute_integral(integrand, x, t, A, m):
     return real_part + 1j * imag_part
 
 
-# Modified to handle array inputs for x using parallel processing
-def numerical_integration_v(x, t, A, m, max_workers=4):
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(compute_integral, integrand_v, xi, t, A, m) for xi in x]
-        results = [future.result() for future in as_completed(futures)]
+# Modified to handle array inputs for x
+def numerical_integration_v(x, t, A, m):
+    results = [compute_integral(integrand_v, xi, t, A, m) for xi in x]
     return np.array(results)
 
 
-def numerical_integration_u(x, t, A, m, max_workers=4):
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(compute_integral, integrand_u, xi, t, A, m) for xi in x]
-        results = [future.result() for future in as_completed(futures)]
+def numerical_integration_u(x, t, A, m):
+    results = [compute_integral(integrand_u, xi, t, A, m) for xi in x]
     return np.array(results)
-
-
-# Example usage
-if __name__ == "__main__":
-    x = np.linspace(-10, 10, 100)  # Example input
-    t = 1.0
-    A = 1.0
-    m = 1.0
-
-    result_v = numerical_integration_v(x, t, A, m)
-    result_u = numerical_integration_u(x, t, A, m)
-    print("v(x,t):", result_v)
-    print("u(x,t):", result_u)
