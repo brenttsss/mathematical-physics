@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.integrate import quad
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
+import matplotlib.pyplot as plt
 
 # Define F, alpha, and beta (vectorized versions)
 def F(k, A):
@@ -52,3 +51,16 @@ def numerical_integration_v(x, t, A, m):
 def numerical_integration_u(x, t, A, m):
     results = [compute_integral(integrand_u, xi, t, A, m) for xi in x]
     return np.array(results)
+
+# Example usage
+if __name__ == "__main__":
+    x = np.linspace(-10, 10, 200)  # Example input
+    t = 15
+    A = 0.25
+    m = 1.0
+
+    result_v = numerical_integration_v(x, t, A, m)
+    result_u = numerical_integration_u(x, t, A, m)
+
+    plt.plot(x, np.real(result_v))
+    plt.show()
