@@ -53,13 +53,14 @@ def numerical_integration_u(x, t, A, m):
     results = [compute_integral(integrand_u, xi, t, A, m) for xi in x]
     return np.array(results)
 
-def finite_difference_method(L, T, Nx=200, Nt=1000):
+def finite_difference_method(L, T, A, m, Nx=200):
     dx = 2 * L / (Nx - 1)  # Spatial step size
-    dt = T / Nt  # Time step size
+    dt = 0.1 * dx / np.sqrt(2)
 
     # Discretize space and time
     x = np.linspace(-L, L, Nx)
-    t = np.linspace(0, T, Nt)
+    t = np.arange(0, T + dt, dt)
+    Nt = len(t)
 
     # Initial conditions
     u = np.zeros((Nt, Nx), dtype=complex)
@@ -83,51 +84,10 @@ def finite_difference_method(L, T, Nx=200, Nt=1000):
 
     return u, v
 
-
-def finite_difference_step(u_n, v_n, dx, dt, m, Nx):
-    u_n1 = np.zeros(Nx, dtype=complex)
-    v_n1 = np.zeros(Nx, dtype=complex)
-
-    for i in range(1, Nx - 1):
-        u_n1[i] = u_n[i] + dt * (-(u_n[i + 1] - u_n[i - 1]) / (2 * dx) + 1j * m * v_n[i])
-        v_n1[i] = v_n[i] + dt * ((v_n[i + 1] - v_n[i - 1]) / (2 * dx) + 1j * m * u_n[i])
-
-    # Apply periodic boundary conditions
-    u_n1[0] = u_n1[-2]  # u(x=-L) = u(x=L)
-    u_n1[-1] = u_n1[1]
-    v_n1[0] = v_n1[-2]  # v(x=-L) = v(x=L)
-    v_n1[-1] = v_n1[1]
-
-    return u_n1, v_n1
-
-def finite_difference_method_2(L, T, Nx=200, Nt=1000, n_jobs=-1):
-    dx = 2 * L / (Nx - 1)  # Spatial step size
-    dt = T / Nt  # Time step size
-
-    # Discretize space and time
-    x = np.linspace(-L, L, Nx)
-    t = np.linspace(0, T, Nt)
-
-    # Initial conditions
-    u = np.zeros((Nt, Nx), dtype=complex)
-    v = np.zeros((Nt, Nx), dtype=complex)
-
-    u[0, :] = A * np.exp(-x ** 2)
-    v[0, :] = -A * np.exp(-x ** 2)
-
-    # Use joblib for parallel processing
-    for n in range(0, Nt - 1):
-        results = Parallel(n_jobs=n_jobs)(delayed(finite_difference_step)(u[n], v[n], dx, dt, m, Nx) for _ in range(1))
-
-        u[n + 1], v[n + 1] = results[0]
-
-    return u, v
-
-
 # Example usage
 if __name__ == "__main__":
     x = np.linspace(-10, 10, 200)  # Example input
-    t = 10
+    t = 12
     A = 0.25
     m = 1.0
 
@@ -135,8 +95,8 @@ if __name__ == "__main__":
     result_u = numerical_integration_u(x, t, A, m)
 
     # finite_u = finite_difference_method_2(10, t)[0][-1, :]
-    finite_v = finite_difference_method(10, t)[1][-1, :]
+    finite_v = finite_difference_method(10, t, A, m)[1][-1, :]
 
-    plt.plot(x, np.imag(result_v))
-    plt.plot(x, np.imag(finite_v.T))
+    plt.plot(x, np.real(result_v))
+    plt.plot(x, np.real(finite_v.T))
     plt.show()
